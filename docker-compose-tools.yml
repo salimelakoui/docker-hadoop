@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+
+  hue-mysql:
+    image: mysql:5.7
+    command: --init-file /data/application/init.sql
+    volumes:
+      - hue-mysql-data:/var/lib/mysql
+      - ../others/hue/init.sql:/data/application/init.sql
+    networks:
+      - dp-network
+    environment:
+      MYSQL_ROOT_USER: "root"
+      MYSQL_ROOT_PASSWORD: "secret"
+      MYSQL_DATABASE: "hue"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "secret"
+
+  hue-server:
+    image: gethue/hue:latest
+    depends_on: 
+      - hue-mysql
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../others/hue/conf/z-hue-overrides.ini:/usr/share/hue/desktop/conf/z-hue-overrides.ini
+    networks:
+      - dp-network
+
+networks:
+  dp-network:
+    external: true
+
+volumes:
+  hue-mysql-data:
+

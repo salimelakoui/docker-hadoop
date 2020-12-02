@@ -1,0 +1,86 @@
+version: "3"
+
+services:
+
+  namenode:
+    image: salimelakoui/hadoop-namenode:latest-salim
+    container_name: namenode
+    networks:
+      - dp-network
+    ports:
+      - 9870:9870
+      - 9000:9000
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop.env
+
+  datanode-1:
+    image: salimelakoui/hadoop-datanode:latest-salim
+    depends_on: 
+      - namenode
+    networks:
+      - dp-network
+    ports:
+      - 9864:9864
+    volumes:
+      - hadoop_datanode-1:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  resourcemanager:
+    image: salimelakoui/hadoop-resourcemanager:latest-salim
+    container_name: resourcemanager
+    networks:
+      - dp-network
+    ports:
+      - 8088:8088
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager-1:
+    image: salimelakoui/hadoop-nodemanager:latest-salim
+    depends_on: 
+      - resourcemanager
+    networks:
+      - dp-network
+    ports:
+      - 8044:8042
+    environment:
+      SERVICE_PRECONDITION: "resourcemanager:8088"
+      NODE_MANAGER_HOST: "localhost"
+      NODE_MANAGER_PORT: "8044"
+    env_file:
+      - ./hadoop.env
+
+  historyserver:
+    image: salimelakoui/hadoop-historyserver:latest-salim
+    container_name: historyserver
+    depends_on: 
+      - resourcemanager
+    networks:
+      - dp-network
+    ports:
+      - 8188:8188
+    environment:
+      SERVICE_PRECONDITION: "resourcemanager:8088"
+      PRE_CMD_1: "hdfs dfs -mkdir -p /spark-logs"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+
+networks:
+  dp-network:
+    external: true
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode-1:
+  hadoop_historyserver:

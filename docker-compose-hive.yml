@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  hive-server:
+    image: salimelakoui/hive-server:latest-salim
+    depends_on: 
+      - hive-postgresql
+    networks:
+      - dp-network
+    env_file:
+      - ./hadoop.env
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 hive-postgresql:5432"
+      PRE_CMD_1: "/apps/hive/bin/schematool -dbType postgres -initSchema -verbose"
+      PRE_CMD_2: "/apps/hive/bin/schematool -dbType postgres -upgradeSchema -verbose"
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+      - "9083:9083"
+
+  hive-postgresql:
+    image: postgres:9.5.3
+    volumes:
+       - hive-postgresql-data:/data/postgres
+    environment:
+      POSTGRES_DB: "metastore"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "postgres"
+    networks:
+      - dp-network
+
+networks:
+  dp-network:
+    external: true
+
+volumes:
+  hive-postgresql-data:

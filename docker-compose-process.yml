@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+    airflow-postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        volumes:
+            - airflow-postgresql-data:/data/postgres
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+        networks:
+            - dp-network
+
+    airflow-webserver:
+        image: salimelakoui/airflow:latest-salim
+        depends_on:
+            - airflow-postgres
+        environment:
+            - LOAD_EX=n
+            - EXECUTOR=Local
+        links:
+            - "airflow-postgres:postgres"
+        volumes:
+            - ./others/airflow/dags:/usr/local/airflow/dags
+            # - ./plugins:/usr/local/airflow/plugins
+        ports:
+            - "8282:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+        networks:
+            - dp-network
+
+
+networks:
+  dp-network:
+    external: true
+
+volumes:
+  airflow-postgresql-data:
+
+
