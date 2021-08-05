@@ -25,13 +25,5 @@ make spark-submit-client
 #docker build -t salimelakoui/hive:$(current_branch) ./others/hive
 
 
-TODO
-- Regarder les log out
-- Ambari
-- Accès management ?
-
-
-Best effort  
-- DNS serveur on hadoop .
 
 
